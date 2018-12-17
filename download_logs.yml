@@ -1,0 +1,22 @@
+---
+- hosts: linux
+  remote_user: root
+
+  tasks:
+    - name: Date Variable
+#      set_fact: temp="{{lookup('pipe', 'date -d \"1 day ago\" +%Y-%m-%d')}}"
+      set_fact: temp1="{{lookup('pipe', 'date -d \"2 day ago\" +%m-%d-%Y')}}"
+
+    - name: Logs download of tomcats
+      shell: find /usr/local/tomcat85LB*/ -name application{{ temp1 }}.log.gz -type f
+      register: files_to_copy
+
+    - debug: var=temp1
+    - debug: var=files_to_copy.stdout_lines
+
+    - fetch:
+        src: "{{ item }}"
+        dest: /tmp/
+#       flat: yes
+      with_items: "{{ files_to_copy.stdout_lines }}"
+
